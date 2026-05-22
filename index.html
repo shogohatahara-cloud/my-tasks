@@ -58,9 +58,6 @@
   .due-normal  { color: #555; }
   .due-none    { color: #bbb; }
 
-  .due-time { font-size: 12px; color: #888; margin-left: 4px; }
-  .due-overdue .due-time { color: #f87171; }
-  .due-today   .due-time { color: #fbbf24; }
 
   .delete-btn {
     background: none; border: none; color: #ccc; font-size: 16px;
@@ -177,14 +174,14 @@ const STATUS_CYCLE = ['pending', 'inprogress', 'done'];
 const today = new Date(); today.setHours(0,0,0,0);
 
 function dueInfo(due, time) {
-  if (!due) return { text: '—', timePart: '', cls: 'due-none' };
+  if (!due) return { text: '—', cls: 'due-none' };
   const d = new Date(due); d.setHours(0,0,0,0);
   const diff = Math.round((d - today) / 86400000);
   const dateText = d.toLocaleDateString('ja-JP', { month:'numeric', day:'numeric' });
-  const timePart = time || '';
-  if (diff < 0)  return { text: dateText + '（超過）', timePart, cls: 'due-overdue' };
-  if (diff === 0) return { text: '今日',                timePart, cls: 'due-today' };
-  return { text: dateText, timePart, cls: 'due-normal' };
+  const suffix = time ? ' ' + time : '';
+  if (diff < 0)  return { text: dateText + suffix + '（超過）', cls: 'due-overdue' };
+  if (diff === 0) return { text: '今日' + suffix,               cls: 'due-today' };
+  return { text: dateText + suffix, cls: 'due-normal' };
 }
 
 function save() { localStorage.setItem(KEY, JSON.stringify(tasks)); }
@@ -213,10 +210,9 @@ function render() {
   document.getElementById('task-body').innerHTML = sorted.map(t => {
     const s = STATUS[t.status] || STATUS.pending;
     const d = dueInfo(t.due, t.time);
-    const timeHtml = d.timePart ? `<span class="due-time">${d.timePart}</span>` : '';
     return `<tr>
       <td>${esc(t.title)}</td>
-      <td class="${d.cls}">${d.text}${timeHtml}</td>
+      <td class="${d.cls}">${d.text}</td>
       <td><span class="status ${s.cls}" onclick="cycleStatus('${t.id}')">${s.label}</span></td>
       <td><button class="delete-btn" onclick="deleteTask('${t.id}')">✕</button></td>
     </tr>`;
