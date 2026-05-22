@@ -83,11 +83,21 @@
     border: none; border-radius: 6px; font-size: 13px; cursor: pointer;
   }
   .add-btn:hover { background: #444; }
+
+  .csv-btn {
+    padding: 6px 14px; background: #fff; color: #444;
+    border: 1.5px solid #ddd; border-radius: 6px; font-size: 13px; cursor: pointer;
+    margin-left: 8px;
+  }
+  .csv-btn:hover { background: #f5f5f5; border-color: #aaa; }
 </style>
 </head>
 <body>
 
-<header>タスク管理</header>
+<header style="display:flex;align-items:center;justify-content:space-between;">
+  <span>タスク管理</span>
+  <button class="csv-btn" onclick="downloadCSV()">CSVダウンロード</button>
+</header>
 
 <table>
   <thead>
@@ -236,6 +246,26 @@ document.getElementById('new-title').addEventListener('keydown', e => {
 });
 
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function downloadCSV() {
+  const STATUS_LABEL = { done:'完了', inprogress:'進行中', pending:'未着手' };
+  const sorted = [...tasks].sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
+  const rows = [
+    ['案件名', '締め切り日', '時間', 'ステータス'],
+    ...sorted.map(t => [
+      t.title,
+      t.due  || '',
+      t.time || '',
+      STATUS_LABEL[t.status] || t.status,
+    ])
+  ];
+  const csv = rows.map(r => r.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(',')).join('\r\n');
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'tasks_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+}
 
 render();
 </script>
