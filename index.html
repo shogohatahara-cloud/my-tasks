@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>タスク管理</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'Hiragino Sans', sans-serif; background: #f5f5f5; color: #222; }
+
+  header {
+    background: #fff;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 16px 24px;
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  table {
+    width: calc(100% - 48px);
+    margin: 24px;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+
+  th {
+    background: #f0f0f0;
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: #666;
+    font-weight: 600;
+  }
+
+  td { padding: 12px 14px; border-top: 1px solid #eee; font-size: 14px; vertical-align: middle; }
+
+  tr:hover td { background: #fafafa; }
+
+  .status {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .status-done       { background: #d1fae5; color: #065f46; }
+  .status-inprogress { background: #fef3c7; color: #92400e; }
+  .status-pending    { background: #f1f5f9; color: #64748b; }
+
+  .due-overdue { color: #ef4444; font-weight: 600; }
+  .due-today   { color: #f59e0b; font-weight: 600; }
+  .due-normal  { color: #555; }
+  .due-none    { color: #bbb; }
+
+  .delete-btn {
+    background: none; border: none; color: #ccc; font-size: 16px;
+    cursor: pointer; padding: 2px 6px; border-radius: 4px;
+  }
+  .delete-btn:hover { color: #ef4444; background: #fee2e2; }
+
+  .add-row td { padding: 8px 14px; border-top: 1px solid #eee; }
+  .add-row input, .add-row select {
+    padding: 6px 10px; border: 1.5px solid #e0e0e0; border-radius: 6px;
+    font-size: 13px; outline: none; font-family: inherit;
+  }
+  .add-row input:focus, .add-row select:focus { border-color: #555; }
+  .add-row input[type=text] { width: 220px; }
+  .add-row input[type=date] { width: 140px; }
+
+  .add-btn {
+    padding: 6px 14px; background: #222; color: #fff;
+    border: none; border-radius: 6px; font-size: 13px; cursor: pointer;
+  }
+  .add-btn:hover { background: #444; }
+</style>
+</head>
+<body>
+
+<header>タスク管理</header>
+
+<table>
+  <thead>
+    <tr>
+      <th>案件名</th>
+      <th>締め切り</th>
+      <th>ステータス</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody id="task-body"></tbody>
+  <tbody class="add-row">
+    <tr>
+      <td><input type="text" id="new-title" placeholder="案件名"></td>
+      <td><input type="date" id="new-due"></td>
+      <td>
+        <select id="new-status">
+          <option value="pending">未着手</option>
+          <option value="inprogress">進行中</option>
+          <option value="done">完了</option>
+        </select>
+      </td>
+      <td><button class="add-btn" onclick="addTask()">追加</button></td>
+    </tr>
+  </tbody>
+</table>
+
+<script>
+const KEY = 'tasks_simple';
+
+const INITIAL_TASKS = [
+  // ── コーポレートPJ 進捗確認 ──────────────────────────
+  { id: 'i01', title: 'コーポレートPJ 進捗確認',                                   due: '2026-05-25', status: 'pending' },
+  { id: 'i02', title: 'コーポレートPJ 進捗確認',                                   due: '2026-05-27', status: 'pending' },
+  { id: 'i03', title: 'コーポレートPJ 進捗確認',                                   due: '2026-06-01', status: 'pending' },
+  // ── 先方キックオフ 資料作成 ───────────────────────────
+  { id: 'i04', title: '【w123 レジェンドホーム】先方キックオフ 資料作成',            due: '2026-05-22', status: 'pending' },
+  { id: 'i05', title: '【w128 中里工務店】先方キックオフ 資料作成',                  due: '2026-05-21', status: 'pending' },
+  { id: 'i06', title: '【w127 山口企画設計】先方キックオフ 資料作成',                due: '2026-05-27', status: 'pending' },
+  // ── 議事録作成（当日中）5/22 ─────────────────────────
+  { id: 'i07', title: '【w123 レジェンドホーム】先方キックオフ 議事録',              due: '2026-05-22', status: 'pending' },
+  { id: 'i08', title: '【w122 長崎材木店】WFすり合わせ 議事録',                     due: '2026-05-22', status: 'pending' },
+  { id: 'i09', title: '【w108 lixil BAA】すり合わせmtg 議事録',                    due: '2026-05-22', status: 'pending' },
+  { id: 'i10', title: '【ノンビラ】ディレクター定例 議事録',                         due: '2026-05-22', status: 'pending' },
+  // ── 議事録作成（当日中）5/25 ─────────────────────────
+  { id: 'i11', title: '【w129 ジューケン】社内キックオフ 議事録',                    due: '2026-05-25', status: 'pending' },
+  { id: 'i12', title: '【ノンビラ】ディレクター定例＠meet 議事録',                   due: '2026-05-25', status: 'pending' },
+  { id: 'i13', title: '【w128 中里工務店】先方キックオフ 議事録',                    due: '2026-05-25', status: 'pending' },
+  { id: 'i14', title: '【w110 丸良木材産業】デザイン依頼mtg 議事録',                due: '2026-05-25', status: 'pending' },
+  // ── 議事録作成（当日中）5/26〜6/1 ───────────────────
+  { id: 'i15', title: '【w106 井上建設】打ち合わせ 議事録',                         due: '2026-05-26', status: 'pending' },
+  { id: 'i16', title: '【w088 アルカーサオーダー】土地クローリングmtg 議事録',       due: '2026-05-27', status: 'pending' },
+  { id: 'i17', title: '【ノンビラ】ディレクター定例＠meet 議事録',                   due: '2026-05-27', status: 'pending' },
+  { id: 'i18', title: '【w127 山口企画設計】mtg前打ち合わせ 議事録',                due: '2026-05-27', status: 'pending' },
+  { id: 'i19', title: '【w121 千葉建設リノベ】デザイン提案mtg 議事録',              due: '2026-05-28', status: 'pending' },
+  { id: 'i20', title: '【w127 山口企画設計】先方キックオフ 議事録',                  due: '2026-05-29', status: 'pending' },
+  { id: 'i21', title: '【ノンビラ】ディレクター定例＠meet 議事録',                   due: '2026-06-01', status: 'pending' },
+  { id: 'i22', title: '【w113 シモミ建設】全体デザイン提案 議事録',                  due: '2026-06-01', status: 'pending' },
+  // ── その他 ───────────────────────────────────────────
+  { id: 'i23', title: '【w122 長崎材木店】WFすり合わせ（小林さん案も提案）',         due: '2026-05-22', status: 'pending' },
+];
+
+let tasks = JSON.parse(localStorage.getItem(KEY) || 'null');
+if (!tasks) { tasks = INITIAL_TASKS; save(); }
+
+const STATUS = {
+  done:       { label: '完了',   cls: 'status-done' },
+  inprogress: { label: '進行中', cls: 'status-inprogress' },
+  pending:    { label: '未着手', cls: 'status-pending' },
+};
+
+const STATUS_CYCLE = ['pending', 'inprogress', 'done'];
+
+const today = new Date(); today.setHours(0,0,0,0);
+
+function dueInfo(due) {
+  if (!due) return { text: '—', cls: 'due-none' };
+  const d = new Date(due); d.setHours(0,0,0,0);
+  const diff = Math.round((d - today) / 86400000);
+  const text = d.toLocaleDateString('ja-JP', { month:'numeric', day:'numeric' });
+  if (diff < 0)  return { text: text + '（超過）', cls: 'due-overdue' };
+  if (diff === 0) return { text: '今日',            cls: 'due-today' };
+  return { text, cls: 'due-normal' };
+}
+
+function save() { localStorage.setItem(KEY, JSON.stringify(tasks)); }
+
+function cycleStatus(id) {
+  const t = tasks.find(x => x.id === id);
+  if (!t) return;
+  const i = STATUS_CYCLE.indexOf(t.status);
+  t.status = STATUS_CYCLE[(i + 1) % STATUS_CYCLE.length];
+  save(); render();
+}
+
+function deleteTask(id) {
+  tasks = tasks.filter(x => x.id !== id);
+  save(); render();
+}
+
+function render() {
+  const sorted = [...tasks].sort((a, b) => {
+    if (!a.due && !b.due) return 0;
+    if (!a.due) return 1;
+    if (!b.due) return -1;
+    return a.due.localeCompare(b.due);
+  });
+
+  document.getElementById('task-body').innerHTML = sorted.map(t => {
+    const s = STATUS[t.status] || STATUS.pending;
+    const d = dueInfo(t.due);
+    return `<tr>
+      <td>${esc(t.title)}</td>
+      <td class="${d.cls}">${d.text}</td>
+      <td><span class="status ${s.cls}" onclick="cycleStatus('${t.id}')">${s.label}</span></td>
+      <td><button class="delete-btn" onclick="deleteTask('${t.id}')">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function addTask() {
+  const title = document.getElementById('new-title').value.trim();
+  if (!title) { document.getElementById('new-title').focus(); return; }
+  tasks.push({
+    id: Date.now().toString(),
+    title,
+    due:    document.getElementById('new-due').value,
+    status: document.getElementById('new-status').value,
+  });
+  document.getElementById('new-title').value = '';
+  document.getElementById('new-due').value = '';
+  document.getElementById('new-status').value = 'pending';
+  save(); render();
+  document.getElementById('new-title').focus();
+}
+
+document.getElementById('new-title').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addTask();
+});
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+render();
+</script>
+</body>
+</html>
