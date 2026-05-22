@@ -161,7 +161,16 @@ const INITIAL_TASKS = [
 ];
 
 let tasks = JSON.parse(localStorage.getItem(KEY) || 'null');
-if (!tasks) { tasks = INITIAL_TASKS; save(); }
+if (!tasks) {
+  tasks = INITIAL_TASKS;
+} else {
+  // 既存データに time フィールドがなければ INITIAL_TASKS から補完
+  const initialMap = Object.fromEntries(INITIAL_TASKS.map(t => [t.id, t]));
+  tasks.forEach(t => {
+    if (t.time === undefined && initialMap[t.id]) t.time = initialMap[t.id].time;
+  });
+}
+save();
 
 const STATUS = {
   done:       { label: '完了',   cls: 'status-done' },
