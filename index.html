@@ -12,8 +12,8 @@
     background: #fff;
     border-bottom: 1px solid #e0e0e0;
     padding: 16px 24px;
-    font-size: 16px;
-    font-weight: 700;
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 16px; font-weight: 700;
   }
 
   table {
@@ -30,25 +30,16 @@
     background: #f0f0f0;
     text-align: left;
     padding: 10px 14px;
-    font-size: 12px;
-    color: #666;
-    font-weight: 600;
+    font-size: 12px; color: #666; font-weight: 600;
   }
 
   td { padding: 12px 14px; border-top: 1px solid #eee; font-size: 14px; vertical-align: middle; }
-
   tr:hover td { background: #fafafa; }
 
   .status {
-    display: inline-block;
-    padding: 3px 10px;
-    border-radius: 99px;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    user-select: none;
+    display: inline-block; padding: 3px 10px; border-radius: 99px;
+    font-size: 12px; font-weight: 600; cursor: pointer; user-select: none;
   }
-
   .status-done       { background: #d1fae5; color: #065f46; }
   .status-inprogress { background: #fef3c7; color: #92400e; }
   .status-pending    { background: #f1f5f9; color: #64748b; }
@@ -57,7 +48,6 @@
   .due-today   { color: #f59e0b; font-weight: 600; }
   .due-normal  { color: #555; }
   .due-none    { color: #bbb; }
-
 
   .delete-btn {
     background: none; border: none; color: #ccc; font-size: 16px;
@@ -84,14 +74,13 @@
   .csv-btn {
     padding: 6px 14px; background: #fff; color: #444;
     border: 1.5px solid #ddd; border-radius: 6px; font-size: 13px; cursor: pointer;
-    margin-left: 8px;
   }
   .csv-btn:hover { background: #f5f5f5; border-color: #aaa; }
 </style>
 </head>
 <body>
 
-<header style="display:flex;align-items:center;justify-content:space-between;">
+<header>
   <span>タスク管理</span>
   <button class="csv-btn" onclick="downloadCSV()">CSVダウンロード</button>
 </header>
@@ -129,45 +118,86 @@
 const KEY = 'tasks_simple';
 
 const INITIAL_TASKS = [
-  // ── コーポレートPJ 進捗確認 ──────────────────────────
-  { id: 'i01', title: 'コーポレートPJ 進捗確認',                                   due: '2026-05-25', time: '12:00', status: 'pending' },
-  { id: 'i02', title: 'コーポレートPJ 進捗確認',                                   due: '2026-05-27', time: '13:00', status: 'pending' },
-  { id: 'i03', title: 'コーポレートPJ 進捗確認',                                   due: '2026-06-01', time: '12:00', status: 'pending' },
-  // ── 先方キックオフ 資料作成 ───────────────────────────
-  { id: 'i04', title: '【w123 レジェンドホーム】先方キックオフ 資料作成',            due: '2026-05-22', time: '09:00', status: 'pending' },
-  { id: 'i05', title: '【w128 中里工務店】先方キックオフ 資料作成',                  due: '2026-05-21', time: '15:00', status: 'pending' },
-  { id: 'i06', title: '【w127 山口企画設計】先方キックオフ 資料作成',                due: '2026-05-27', time: '14:00', status: 'pending' },
-  // ── 議事録作成（当日中）5/22 ─────────────────────────
-  { id: 'i07', title: '【w123 レジェンドホーム】先方キックオフ 議事録',              due: '2026-05-22', time: '09:00', status: 'pending' },
-  { id: 'i08', title: '【w122 長崎材木店】WFすり合わせ 議事録',                     due: '2026-05-22', time: '10:30', status: 'pending' },
-  { id: 'i09', title: '【w108 lixil BAA】すり合わせmtg 議事録',                    due: '2026-05-22', time: '13:00', status: 'pending' },
-  { id: 'i10', title: '【ノンビラ】ディレクター定例 議事録',                         due: '2026-05-22', time: '15:00', status: 'pending' },
-  // ── 議事録作成（当日中）5/25 ─────────────────────────
-  { id: 'i11', title: '【w129 ジューケン】社内キックオフ 議事録',                    due: '2026-05-25', time: '13:00', status: 'pending' },
-  { id: 'i12', title: '【ノンビラ】ディレクター定例＠meet 議事録',                   due: '2026-05-25', time: '14:00', status: 'pending' },
-  { id: 'i13', title: '【w128 中里工務店】先方キックオフ 議事録',                    due: '2026-05-25', time: '15:00', status: 'pending' },
-  { id: 'i14', title: '【w110 丸良木材産業】デザイン依頼mtg 議事録',                due: '2026-05-25', time: '16:00', status: 'pending' },
-  // ── 議事録作成（当日中）5/26〜6/1 ───────────────────
-  { id: 'i15', title: '【w106 井上建設】打ち合わせ 議事録',                         due: '2026-05-26', time: '10:00', status: 'pending' },
-  { id: 'i16', title: '【w088 アルカーサオーダー】土地クローリングmtg 議事録',       due: '2026-05-27', time: '13:00', status: 'pending' },
-  { id: 'i17', title: '【ノンビラ】ディレクター定例＠meet 議事録',                   due: '2026-05-27', time: '15:00', status: 'pending' },
-  { id: 'i18', title: '【w127 山口企画設計】mtg前打ち合わせ 議事録',                due: '2026-05-27', time: '16:00', status: 'pending' },
-  { id: 'i19', title: '【w121 千葉建設リノベ】デザイン提案mtg 議事録',              due: '2026-05-28', time: '10:00', status: 'pending' },
-  { id: 'i20', title: '【w127 山口企画設計】先方キックオフ 議事録',                  due: '2026-05-29', time: '14:00', status: 'pending' },
-  { id: 'i21', title: '【ノンビラ】ディレクター定例＠meet 議事録',                   due: '2026-06-01', time: '14:00', status: 'pending' },
-  { id: 'i22', title: '【w113 シモミ建設】全体デザイン提案 議事録',                  due: '2026-06-01', time: '16:00', status: 'pending' },
-  // ── その他 ───────────────────────────────────────────
-  { id: 'i23', title: '【w122 長崎材木店】WFすり合わせ（小林さん案も提案）',         due: '2026-05-22', time: '10:30', status: 'pending' },
+  // ── コーポレートPJ 進捗確認（ディレクター定例＠meet の2時間前）─
+  { id: 'i01', title: 'コーポレートPJ 進捗確認',  due: '2026-05-25', time: '12:00', status: 'pending' },
+  { id: 'i02', title: 'コーポレートPJ 進捗確認',  due: '2026-05-27', time: '13:00', status: 'pending' },
+  { id: 'i03', title: 'コーポレートPJ 進捗確認',  due: '2026-06-01', time: '12:00', status: 'pending' },
+  { id: 'i24', title: 'コーポレートPJ 進捗確認',  due: '2026-06-03', time: '12:30', status: 'pending' },
+  { id: 'i25', title: 'コーポレートPJ 進捗確認',  due: '2026-06-08', time: '12:00', status: 'pending' },
+  { id: 'i26', title: 'コーポレートPJ 進捗確認',  due: '2026-06-10', time: '13:00', status: 'pending' },
+  { id: 'i27', title: 'コーポレートPJ 進捗確認',  due: '2026-06-15', time: '12:00', status: 'pending' },
+  { id: 'i28', title: 'コーポレートPJ 進捗確認',  due: '2026-06-17', time: '13:00', status: 'pending' },
+  // ── 先方キックオフ 資料作成（2営業日前）──────────────────
+  { id: 'i04', title: '【w123 レジェンドホーム】先方キックオフ 資料作成',       due: '2026-05-22', time: '09:00', status: 'pending' },
+  { id: 'i05', title: '【w128 中里工務店】先方キックオフ 資料作成',             due: '2026-05-21', time: '15:00', status: 'pending' },
+  { id: 'i06', title: '【w127 山口企画設計】先方キックオフ 資料作成',           due: '2026-05-27', time: '14:00', status: 'pending' },
+  { id: 'i33', title: '【w129 ジューケン】先方キックオフ 資料作成',             due: '2026-05-28', time: '13:00', status: 'pending' },
+  { id: 'i35', title: '【ハウジング重兵衛様】2サイト先方キックオフ 資料作成',   due: '2026-05-29', time: '10:00', status: 'pending' },
+  // ── 議事録作成（当日中）5/22 ──────────────────────────
+  { id: 'i07', title: '【w123 レジェンドホーム】先方キックオフ 議事録',         due: '2026-05-22', time: '09:00', status: 'pending' },
+  { id: 'i08', title: '【w122 長崎材木店】WFすり合わせ 議事録',                due: '2026-05-22', time: '10:30', status: 'pending' },
+  { id: 'i09', title: '【w108 lixil BAA】すり合わせmtg 議事録',               due: '2026-05-22', time: '13:00', status: 'pending' },
+  { id: 'i10', title: '【ノンビラ】ディレクター定例 議事録',                    due: '2026-05-22', time: '15:00', status: 'pending' },
+  // ── 議事録作成（当日中）5/25 ──────────────────────────
+  { id: 'i11', title: '【w129 ジューケン】社内キックオフ 議事録',               due: '2026-05-25', time: '13:00', status: 'pending' },
+  { id: 'i12', title: '【ノンビラ】ディレクター定例＠meet 議事録',              due: '2026-05-25', time: '14:00', status: 'pending' },
+  { id: 'i13', title: '【w128 中里工務店】先方キックオフ 議事録',               due: '2026-05-25', time: '15:00', status: 'pending' },
+  { id: 'i14', title: '【w110 丸良木材産業】デザイン依頼mtg 議事録',           due: '2026-05-25', time: '16:00', status: 'pending' },
+  // ── 議事録作成（当日中）5/26 ──────────────────────────
+  { id: 'i15', title: '【w106 井上建設】打ち合わせ 議事録',                    due: '2026-05-26', time: '10:00', status: 'pending' },
+  // ── 議事録作成（当日中）5/27 ──────────────────────────
+  { id: 'i16', title: '【w088 アルカーサオーダー】土地クローリングmtg 議事録', due: '2026-05-27', time: '13:00', status: 'pending' },
+  { id: 'i29', title: '【w088 アルカーサオーダー】コーディング依頼mtg 議事録', due: '2026-05-27', time: '14:00', status: 'pending' },
+  { id: 'i17', title: '【ノンビラ】ディレクター定例＠meet 議事録',              due: '2026-05-27', time: '15:00', status: 'pending' },
+  { id: 'i18', title: '【w127 山口企画設計】キックオフ事前mtg 議事録',         due: '2026-05-27', time: '16:00', status: 'pending' },
+  // ── 議事録作成（当日中）5/28 ──────────────────────────
+  { id: 'i19', title: '【w121 千葉建設リノベ】デザイン提案mtg 議事録',         due: '2026-05-28', time: '10:00', status: 'pending' },
+  { id: 'i30', title: '【w122 長崎材木店】WF確認mtg 議事録',                   due: '2026-05-28', time: '14:00', status: 'pending' },
+  // ── 議事録作成（当日中）5/29 ──────────────────────────
+  { id: 'i31', title: '【w118 ニコタス】下層デザイン依頼mtg 議事録',           due: '2026-05-29', time: '10:00', status: 'pending' },
+  { id: 'i20', title: '【w127 山口企画設計】先方キックオフ 議事録',             due: '2026-05-29', time: '14:00', status: 'pending' },
+  { id: 'i32', title: '【ノンビラ】WEB PROD DIV 月末定例 議事録',              due: '2026-05-29', time: '16:00', status: 'pending' },
+  // ── 議事録作成（当日中）6/1 ───────────────────────────
+  { id: 'i34', title: '【w129 ジューケン】先方キックオフ 議事録',               due: '2026-06-01', time: '13:00', status: 'pending' },
+  { id: 'i21', title: '【ノンビラ】ディレクター定例＠meet 議事録',              due: '2026-06-01', time: '14:00', status: 'pending' },
+  { id: 'i22', title: '【w113 シモミ建設】全体デザイン提案 議事録',             due: '2026-06-01', time: '16:00', status: 'pending' },
+  // ── 議事録作成（当日中）6/2 ───────────────────────────
+  { id: 'i36', title: '【ハウジング重兵衛様】2サイト先方キックオフ 議事録',     due: '2026-06-02', time: '10:00', status: 'pending' },
+  { id: 'i37', title: '【w112 マミーハウス】お打ち合わせ 議事録',               due: '2026-06-02', time: '10:30', status: 'pending' },
+  // ── 議事録作成（当日中）6/3 ───────────────────────────
+  { id: 'i38', title: '【w116 フェアホーム】デザイン依頼mtg 議事録',           due: '2026-06-03', time: '11:30', status: 'pending' },
+  { id: 'i39', title: '【w120 セルコホーム】ヒアリングmtg 議事録',             due: '2026-06-03', time: '13:00', status: 'pending' },
+  { id: 'i40', title: '【ノンビラ】ディレクター定例@meet 議事録',               due: '2026-06-03', time: '14:30', status: 'pending' },
+  { id: 'i41', title: '【w110 丸良木材産業】デザイン提案mtg 議事録',           due: '2026-06-03', time: '15:30', status: 'pending' },
+  // ── 議事録作成（当日中）6/4〜 ────────────────────────
+  { id: 'i42', title: '【w130 日進堂】社内キックオフ 議事録',                   due: '2026-06-04', time: '13:00', status: 'pending' },
+  { id: 'i44', title: '【w102 エコビルド 建築家サイト】検品mtg 議事録',         due: '2026-06-08', time: '10:00', status: 'pending' },
+  { id: 'i45', title: '【ノンビラ】ディレクター定例＠meet 議事録',              due: '2026-06-08', time: '14:00', status: 'pending' },
+  { id: 'i46', title: '【w119 西脇建設】下層ページデザイン依頼mtg 議事録',     due: '2026-06-09', time: '10:00', status: 'pending' },
+  { id: 'i47', title: '【w128 中里工務店】構成案・スケジュール提案 議事録',     due: '2026-06-09', time: '13:30', status: 'pending' },
+  { id: 'i48', title: '【ノンビラ】ディレクター定例@meet 議事録',               due: '2026-06-10', time: '15:00', status: 'pending' },
+  { id: 'i49', title: '【ノンビラ】ディレクター定例＠meet 議事録',              due: '2026-06-15', time: '14:00', status: 'pending' },
+  { id: 'i50', title: '【ノンビラ】ディレクター定例@meet 議事録',               due: '2026-06-17', time: '15:00', status: 'pending' },
+  // ── 締め切り（日付未定）─────────────────────────────
+  { id: 'i43', title: '★〆切：経費申請',                                       due: '',           time: '',      status: 'pending' },
+  { id: 'i51', title: '★〆切：勤怠締め',                                       due: '',           time: '',      status: 'pending' },
+  // ── その他 ──────────────────────────────────────────
+  { id: 'i23', title: '【w122 長崎材木店】WFすり合わせ（小林さん案も提案）',    due: '2026-05-22', time: '10:30', status: 'pending' },
 ];
 
 let tasks = JSON.parse(localStorage.getItem(KEY) || 'null');
 if (!tasks) {
   tasks = INITIAL_TASKS;
 } else {
-  // 既存データに time フィールドがなければ INITIAL_TASKS から補完
   const initialMap = Object.fromEntries(INITIAL_TASKS.map(t => [t.id, t]));
+  const storedIds = new Set(tasks.map(t => t.id));
+  // 既存タスクに time がなければ補完
   tasks.forEach(t => {
     if (t.time === undefined && initialMap[t.id]) t.time = initialMap[t.id].time;
+  });
+  // INITIAL_TASKS に追加されたタスクを反映
+  INITIAL_TASKS.forEach(t => {
+    if (!storedIds.has(t.id)) tasks.push(t);
   });
 }
 save();
@@ -177,9 +207,7 @@ const STATUS = {
   inprogress: { label: '進行中', cls: 'status-inprogress' },
   pending:    { label: '未着手', cls: 'status-pending' },
 };
-
 const STATUS_CYCLE = ['pending', 'inprogress', 'done'];
-
 const today = new Date(); today.setHours(0,0,0,0);
 
 function dueInfo(due, time) {
@@ -215,7 +243,6 @@ function sortKey(t) {
 
 function render() {
   const sorted = [...tasks].sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
-
   document.getElementById('task-body').innerHTML = sorted.map(t => {
     const s = STATUS[t.status] || STATUS.pending;
     const d = dueInfo(t.due, t.time);
@@ -257,14 +284,9 @@ function downloadCSV() {
   const sorted = [...tasks].sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
   const rows = [
     ['案件名', '締め切り日', '時間', 'ステータス'],
-    ...sorted.map(t => [
-      t.title,
-      t.due  || '',
-      t.time || '',
-      STATUS_LABEL[t.status] || t.status,
-    ])
+    ...sorted.map(t => [t.title, t.due || '', t.time || '', STATUS_LABEL[t.status] || t.status])
   ];
-  const csv = rows.map(r => r.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(',')).join('\r\n');
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\r\n');
   const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
